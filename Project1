@@ -1,0 +1,18 @@
+import pandas as pd
+import numpy as np
+import seaborn as sns 
+import matplotlib.pyplot as plt 
+df = pd.read_csv("kag_risk_factors_cervical_cancer.csv")
+df.replace('?', pd.NA, inplace=True)
+df = df.apply(pd.to_numeric, errors='coerce')
+#Drop rows with null values
+df.dropna(inplace=True)
+#prints data types to make sure there are not any non-numerical
+print(df.dtypes)
+#Checking if any nulls exist after cleaning the data
+print(df.isna().sum())
+sns.regplot(x='Age', y='Number of sexual partners', data=df)
+plt.title('Age vs Number of Sexual Partners')
+plt.xlabel('Age')
+plt.ylabel('Number of Sexual Partners')
+plt.show()
