@@ -1,18 +1,57 @@
 import pandas as pd
 import numpy as np
-import seaborn as sns 
-import matplotlib.pyplot as plt 
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# Load the dataset
 df = pd.read_csv("kag_risk_factors_cervical_cancer.csv")
-df.replace('?', pd.NA, inplace=True)
+
+# Replace '?' with NaN and convert all columns to numeric where possible
+df.replace('?', np.nan, inplace=True)
 df = df.apply(pd.to_numeric, errors='coerce')
-#Drop rows with null values
-df.dropna(inplace=True)
-#prints data types to make sure there are not any non-numerical
+
+# Fill missing values with the mean of each column (only for numeric columns)
+df.fillna(df.select_dtypes(include=[np.number]).mean(), inplace=True)
+
+# Print data types to ensure they are all numerical
 print(df.dtypes)
-#Checking if any nulls exist after cleaning the data
+
+# Check if any null values remain after cleaning the data
 print(df.isna().sum())
-sns.regplot(x='Age', y='Number of sexual partners', data=df)
-plt.title('Age vs Number of Sexual Partners')
-plt.xlabel('Age')
-plt.ylabel('Number of Sexual Partners')
+
+#Removing the anamoly from smokes that was not 0 or 1 
+df['Smokes'] = df['Smokes'].apply(lambda x: 0 if x < 0.5 else 1)
+
+# Check if the column now contains only binary values (0 and 1)
+print(df['Smokes'].unique())
+
+# 1. Count plot: Smokes vs. Biopsy (cancer diagnosis)
+plt.figure(figsize=(8,6))
+sns.countplot(data=df, x='Smokes', hue='Biopsy', palette={0: 'red', 1: 'blue'})
+plt.title('Smoking Status vs. Cervical Cancer Diagnosis')
+plt.xlabel('Smokes (1 = Yes, 0 = No)')
+plt.ylabel('Count')
+plt.show()
+
+# 2. Scatter plot: Number of sexual partners vs. HPV diagnosis
+plt.figure(figsize=(8,6))
+sns.scatterplot(data=df, x='Number of sexual partners', y='Dx:HPV', hue='Dx:HPV', palette='coolwarm', s=100)
+plt.title('Number of Sexual Partners vs. HPV Diagnosis')
+plt.xlabel('Number of Sexual Partners')
+plt.ylabel('HPV Diagnosis (1 = Positive, 0 = Negative)')
+plt.show()
+
+# 3. Box plot: Age vs. Cancer Diagnosis
+plt.figure(figsize=(8,6))
+sns.boxplot(data=df, x='Dx:Cancer', y='Age', palette='coolwarm')
+plt.title('Age Distribution Based on Cancer Diagnosis')
+plt.xlabel('Cancer Diagnosis (1 = Positive, 0 = Negative)')
+plt.ylabel('Age')
+plt.show()
+
+# 4. Heatmap: Correlation between risk factors and cervical cancer diagnosis
+plt.figure(figsize=(10,8))
+correlation_matrix = df[['Age', 'Number of sexual partners', 'First sexual intercourse', 'Smokes', 'Hormonal Contraceptives', 'Dx:Cancer']].corr()
+sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt='.2f')
+plt.title('Correlation Between Risk Factors and Cancer Diagnosis')
 plt.show()
